@@ -16,22 +16,19 @@ fn main() -> Result<()>{
         execute!(stdout(), MoveTo(buffer.len() as u16, 0))?;
 
         stdout().flush()?;
-        
-        match read().expect("error reading input") {
-            Event::Key(event) => {
-                match event.code {
-                    KeyCode::Char(c) => {
-                        buffer.push(c);
-                    },
-                    KeyCode::Backspace => {
-                        buffer.pop();
-                    },
-                    KeyCode::Esc => break,
-                    _ => {}
-                }
-            },
-            _ => {},
-        }
+       
+        if let Event::Key(event) = read()? {
+            match event.code {
+                KeyCode::Char(c) => {
+                    buffer.push(c);
+                },
+                KeyCode::Backspace => {
+                    buffer.pop();
+                },
+                KeyCode::Esc => break,
+                _ => {}
+            }
+        } 
 
     }
 
