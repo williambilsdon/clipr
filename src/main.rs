@@ -1,28 +1,42 @@
-use crossterm::{event::{Event, KeyCode, read}, terminal};
+use std::io::{stdout, Write};
 
-struct EndProg;
+use crossterm::{event::{Event, KeyCode, read}, terminal, execute, cursor::MoveTo, Result};
 
-impl Drop for EndProg {
-    fn drop(&mut self) {
-        terminal::disable_raw_mode().expect("error dropping raw mode");
-    }
-}
-fn main() {
-    let _prog_manager = EndProg;
+fn main() -> Result<()>{
 
-    terminal::enable_raw_mode().expect("error enabling raw mode");
+    execute!(stdout(), terminal::EnterAlternateScreen)?;
+
+    let mut buffer = String::new();
+
+    execute!(stdout(), crossterm::cursor::Hide)?;
 
     loop {
+        execute!(stdout(), terminal::Clear(terminal::ClearType::All))?;
+        execute!(stdout(), MoveTo(0, 0), crossterm::style::Print(&buffer))?;
+        execute!(stdout(), MoveTo(buffer.len() as u16, 0))?;
+
+        stdout().flush()?;
+        
         match read().expect("error reading input") {
             Event::Key(event) => {
                 match event.code {
-                    KeyCode::Char('q') => break,
-                    KeyCode::Char(input) => println!("input is: {}", input),
-                    _ => todo!()
+                    KeyCode::Char(c) => {
+                        buffer.push(c);
+                    },
+                    KeyCode::Backspace => {
+                        buffer.pop();
+                    },
+                    KeyCode::Esc => break,
+                    _ => {}
                 }
             },
-            _ => todo!(),
+            _ => {},
         }
+
     }
+
+    execute!(stdout(), crossterm::cursor::Show)?;
+    execute!(stdout(), terminal::LeaveAlternateScreen)?;
+    Ok(())
 }
 
