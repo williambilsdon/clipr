@@ -7,4 +7,3 @@ edition = "2021"
 
 [dependencies]
 crossterm = "0.26"
-arboard = "3.2.0"
