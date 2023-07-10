@@ -1,5 +1,6 @@
-use std::{io::{stdout, Write}, path::Path, fs};
-use crossterm::{event::{Event, KeyCode, read, KeyEvent}, terminal::{self, enable_raw_mode, disable_raw_mode}, execute, cursor::MoveTo, Result, style::Print};
+use std::{io::{Write, Stdout, self}, path::Path, fs, error::Error};
+use crossterm::{event::{Event, KeyCode, read, KeyEvent}, terminal::{enable_raw_mode, disable_raw_mode, LeaveAlternateScreen, EnterAlternateScreen}, execute, };
+use ratatui::{backend::CrosstermBackend, Terminal, widgets::Paragraph};
 
 const ROOT_ADDR: &str = "/home/wbilsdon/Documents/clipr/";
 
@@ -37,56 +38,34 @@ enum Mode {
     Create
 }
 
-fn main() -> Result<()>{
-    
+fn main() -> Result<(), Box<dyn Error>>{
+
+    let mut terminal = setup_terminal()?;
     let mut state = State::new();
-
-    execute!(stdout(), terminal::EnterAlternateScreen)?;
-    execute!(stdout(), crossterm::cursor::Hide)?;
-    enable_raw_mode()?;
-
-    execute!(stdout(), Print("Please select a mode: Create (c), Select (s)"))?;
-
-    loop {
-        if let Event::Key(event) = read()? {
-            match event.code {
-                KeyCode::Char('c') => {
-                    state.mode = Mode::Create; 
-                    break
-                },
-                KeyCode::Char('s') => {
-                    state.mode = Mode::Select;
-                    break
-                }
-                KeyCode::Esc => break,
-                _ => {},
-            }
-        }
-    }
-
+    run(&mut terminal, &mut state)?;
+    
     match state.mode {
         Mode::Menu => todo!(),
-        Mode::Create => create_mode()?,
+        Mode::Create => create_mode(&mut terminal)?,
         Mode::Select => println!("Select is not implemented yet, program closing."),
     }
 
-    disable_raw_mode()?;
-    execute!(stdout(), crossterm::cursor::Show)?;
-    execute!(stdout(), terminal::LeaveAlternateScreen)?;
+    restore_terminal(&mut terminal)?;
 
     Ok(())
 }
 
-fn create_mode() -> Result<()> {
+fn create_mode(terminal: &mut Terminal<CrosstermBackend<Stdout>>) -> Result<(), Box<dyn Error>> {
     let mut file = File::new();
-    let output_line = "Name the new file: ";
-
+    
     loop {
-        execute!(stdout(), terminal::Clear(terminal::ClearType::All))?;
-        execute!(stdout(), MoveTo(0, 0), Print(output_line), crossterm::style::Print(&file.name))?;
-        execute!(stdout(), MoveTo(file.name.len() as u16 + output_line.len() as u16, 0))?;
-        stdout().flush()?;
+        let name_file_text = format!("Name the new file: {}", &file.name);
 
+        terminal.draw(|frame| {
+            let name_file = Paragraph::new(name_file_text);
+            frame.render_widget(name_file, frame.size());
+        })?;
+        
         if let Event::Key(event) = read()? {
             match event.code {
                 KeyCode::Char(c) => file.name.push(c),
@@ -100,10 +79,12 @@ fn create_mode() -> Result<()> {
     }
 
     loop {
-        execute!(stdout(), terminal::Clear(terminal::ClearType::All))?;
-        execute!(stdout(), MoveTo(0, 0), crossterm::style::Print(&file.content))?;
-        execute!(stdout(), MoveTo(file.content.len() as u16, 0))?;
-        stdout().flush()?;
+        let content_str = format!("{}", &file.content);
+
+        terminal.draw(|frame| {
+            let contents = Paragraph::new(content_str);
+            frame.render_widget(contents, frame.size());
+        })?;
         
         if let Event::Key(event) = read()? {
             match event {
@@ -131,5 +112,45 @@ fn create_mode() -> Result<()> {
     }
 
     Ok(())
+}
+
+fn setup_terminal() -> Result<Terminal<CrosstermBackend<Stdout>>, Box<dyn Error>> {
+    let mut stdout = io::stdout();
+    enable_raw_mode()?;
+    execute!(stdout, EnterAlternateScreen)?;
+    Ok(Terminal::new(CrosstermBackend::new(stdout))?)
+}
+
+fn restore_terminal(
+    terminal: &mut Terminal<CrosstermBackend<Stdout>>,
+) -> Result<(), Box<dyn Error>> {
+    disable_raw_mode()?;
+    execute!(terminal.backend_mut(), LeaveAlternateScreen,)?;
+    Ok(terminal.show_cursor()?)
+}
+
+fn run(terminal: &mut Terminal<CrosstermBackend<Stdout>>, state: &mut State) -> Result<(), Box<dyn Error>> {
+    Ok(
+        loop {
+            terminal.draw(|frame| {
+                let greeting = Paragraph::new("Please select a mode: Create (c), Select (s)");
+                frame.render_widget(greeting, frame.size());
+            })?;
+            if let Event::Key(event) = read()? {
+                match event.code {
+                    KeyCode::Char('c') => {
+                        state.mode = Mode::Create; 
+                        break
+                    },
+                    KeyCode::Char('s') => {
+                        state.mode = Mode::Select;
+                        break
+                    }
+                    KeyCode::Esc => break,
+                    _ => {},
+                }
+            }
+        }
+    )
 }
 
