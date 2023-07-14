@@ -15,6 +15,16 @@ impl File {
             name: String::new()
         }
     }
+
+    fn write(&self) -> Result<(), Box<dyn Error>> {
+        let string_path = format!("{}{}", ROOT_ADDR, self.name.as_str());
+        let path = Path::new(string_path.trim());
+
+        let mut output = fs::File::create(path)?;
+        output.write_all(self.content.as_bytes())?;
+
+        Ok(())
+    }
 }
 
 pub enum Mode {
@@ -37,7 +47,9 @@ impl State {
     }
 }
 
-pub fn run(terminal: &mut Terminal<CrosstermBackend<Stdout>>, state: &mut State) -> Result<(), Box<dyn Error>> {
+pub fn run(terminal: &mut Terminal<CrosstermBackend<Stdout>>) -> Result<(), Box<dyn Error>> {
+    let mut state = State::new();
+
     loop {
         terminal.draw(|frame| {
             let greeting = Paragraph::new("Please select a mode: Create (c), Select (s)");
@@ -47,20 +59,24 @@ pub fn run(terminal: &mut Terminal<CrosstermBackend<Stdout>>, state: &mut State)
             match event.code {
                 KeyCode::Char('c') => {
                     state.mode = Mode::Create; 
-                    break
                 },
                 KeyCode::Char('s') => {
                     state.mode = Mode::Select;
-                    break
                 }
                 KeyCode::Esc => break,
                 _ => {},
             }
         }
+
+        match state.mode {
+            Mode::Menu => todo!(),
+            Mode::Create => create_mode(terminal)?,
+            Mode::Select => println!("Select is not implemented yet, program closing."),
+        }
+    
     };
-    Ok(
-        ()
-    )
+
+    Ok(())
 }
 
 pub fn create_mode(terminal: &mut Terminal<CrosstermBackend<Stdout>>) -> Result<(), Box<dyn Error>> {
@@ -104,12 +120,7 @@ pub fn create_mode(terminal: &mut Terminal<CrosstermBackend<Stdout>>) -> Result<
                     file.content.pop();
                 },
                 KeyEvent{code: KeyCode::Esc, .. } => {
-                    let string_path = format!("{}{}", ROOT_ADDR, file.name.as_str());
-                    let path = Path::new(string_path.trim());
-
-                    let mut output = fs::File::create(path)?;
-                    output.write_all(file.content.as_bytes())?;
-
+                    file.write()?;
                     break
                 },
                 _ => {}

@@ -7,18 +7,8 @@ mod ui;
 fn main() -> Result<(), Box<dyn Error>>{
 
     let mut terminal = setup_terminal()?;
-    let mut state = ui::State::new();
-    ui::run(&mut terminal, &mut state)?;
-    
-    //TODO: Move this logic out to ui::run
-    match state.mode {
-        ui::Mode::Menu => todo!(),
-        ui::Mode::Create => ui::create_mode(&mut terminal)?,
-        ui::Mode::Select => println!("Select is not implemented yet, program closing."),
-    }
-
+    ui::run(&mut terminal)?;
     restore_terminal(&mut terminal)?;
-
     Ok(())
 }
 
