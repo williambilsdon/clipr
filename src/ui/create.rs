@@ -1,6 +1,6 @@
 use std::{io::Stdout, error::Error};
 use crossterm::event::{read, Event, KeyCode, KeyEvent};
-use ratatui::{Terminal, backend::CrosstermBackend, widgets::Paragraph};
+use ratatui::{Terminal, backend::CrosstermBackend, widgets::{Paragraph, Block, Borders}};
 
 use crate::model::file::File;
 
@@ -11,7 +11,7 @@ pub fn create_mode(terminal: &mut Terminal<CrosstermBackend<Stdout>>) -> Result<
         let name_file_text = format!("Name the new file: {}", &file.name);
 
         terminal.draw(|frame| {
-            let name_file = Paragraph::new(name_file_text);
+            let name_file = Paragraph::new(name_file_text).block(Block::default().title("Create").borders(Borders::ALL));
             frame.render_widget(name_file, frame.size());
         })?;
     
@@ -29,7 +29,7 @@ pub fn create_mode(terminal: &mut Terminal<CrosstermBackend<Stdout>>) -> Result<
 
     loop {
         terminal.draw(|frame| {
-            let contents = Paragraph::new(file.content.to_string());
+            let contents = Paragraph::new(file.content.to_string()).block(Block::default().title("Create").borders(Borders::ALL));
             frame.render_widget(contents, frame.size());
         })?;
     

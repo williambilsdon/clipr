@@ -3,7 +3,7 @@ mod list;
 
 use std::{io::{Stdout, self}, error::Error};
 use crossterm::{event::{Event, read, KeyCode, EnableMouseCapture, DisableMouseCapture}, terminal::{enable_raw_mode, EnterAlternateScreen, disable_raw_mode, LeaveAlternateScreen}, execute};
-use ratatui::{backend::CrosstermBackend, Terminal, widgets::Paragraph};
+use ratatui::{backend::CrosstermBackend, Terminal, widgets::{Paragraph, Block, Borders}};
 
 use crate::model::state::{State, Mode};
 
@@ -14,7 +14,7 @@ pub fn run(terminal: &mut Terminal<CrosstermBackend<Stdout>>) -> Result<(), Box<
 
     loop {
         terminal.draw(|frame| {
-            let greeting = Paragraph::new("Please select a mode: Create (c), List (l)");
+            let greeting = Paragraph::new("Please select a mode: Create (c), List (l)").block(Block::default().title("Menu").borders(Borders::ALL));
             frame.render_widget(greeting, frame.size());
         })?;
         if let Event::Key(event) = read()? {
