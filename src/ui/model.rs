@@ -1,5 +1,7 @@
 use std::{error::Error, path::Path, fs, io::Write};
 
+use ratatui::widgets::ListState;
+
 pub const ROOT_ADDR: &str = "/home/wbilsdon/Documents/clipr/";
 
 pub struct File {
@@ -34,14 +36,18 @@ pub enum Mode {
 
 pub struct State {
     pub mode: Mode,
-    // buffer: String
+    pub items: Vec<String>,
+    pub selected: ListState
 }
 
 impl State {
     pub fn new() -> Self {
+        let mut list_state = ListState::default();
+        list_state.select(Some(0));
         State {
             mode: Mode::Menu,
-            // buffer: String::new()
+            items: Vec::new(),
+            selected: list_state
         }
     }
 }

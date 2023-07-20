@@ -2,12 +2,14 @@ mod create;
 mod list;
 mod model;
 
-use std::{io::Stdout, error::Error};
-use crossterm::event::{Event, read, KeyCode};
+use std::{io::{Stdout, self}, error::Error};
+use crossterm::{event::{Event, read, KeyCode, EnableMouseCapture, DisableMouseCapture}, terminal::{enable_raw_mode, EnterAlternateScreen, disable_raw_mode, LeaveAlternateScreen}, execute};
 use ratatui::{backend::CrosstermBackend, Terminal, widgets::Paragraph};
 use model::{Mode, State};
 
 pub fn run(terminal: &mut Terminal<CrosstermBackend<Stdout>>) -> Result<(), Box<dyn Error>> {
+    setup_terminal()?;
+
     let mut state = State::new();
 
     loop {
@@ -29,14 +31,33 @@ pub fn run(terminal: &mut Terminal<CrosstermBackend<Stdout>>) -> Result<(), Box<
         }
 
         match state.mode {
-            Mode::Menu => todo!(),
+            Mode::Menu => {
+                //TODO:
+                {}
+            },
             Mode::Create => create::create_mode(terminal)?,
-            Mode::List => list::list_mode(terminal)?,
+            Mode::List => list::list_mode(terminal, &mut state)?,
         }
     
     };
 
+    restore_terminal(terminal)?;
+
     Ok(())
+}
+
+fn setup_terminal() -> Result<(), Box<dyn Error>> {
+    enable_raw_mode()?;
+    execute!(io::stdout(), EnterAlternateScreen, EnableMouseCapture)?;
+    Ok(())
+}
+
+fn restore_terminal(
+    terminal: &mut Terminal<CrosstermBackend<Stdout>>,
+) -> Result<(), Box<dyn Error>> {
+    disable_raw_mode()?;
+    execute!(terminal.backend_mut(), LeaveAlternateScreen, DisableMouseCapture)?;
+    Ok(terminal.show_cursor()?)
 }
 
 
