@@ -1,10 +1,11 @@
 use std::{io::Stdout, error::Error};
 use crossterm::event::{read, Event, KeyCode, KeyEvent};
 use ratatui::{Terminal, backend::CrosstermBackend, widgets::Paragraph};
-use crate::ui::model;
+
+use crate::model::file::File;
 
 pub fn create_mode(terminal: &mut Terminal<CrosstermBackend<Stdout>>) -> Result<(), Box<dyn Error>> {
-    let mut file = model::File::new();
+    let mut file = File::new();
 
     loop {
         let name_file_text = format!("Name the new file: {}", &file.name);

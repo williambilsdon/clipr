@@ -2,7 +2,7 @@ use std::{io::Stdout, error::Error, fs};
 use crossterm::event::{read, Event, KeyCode};
 use ratatui::{Terminal, backend::CrosstermBackend, widgets::{List, ListItem, Block, Borders}, text::{Line, Span}, style::{Style, Color, Modifier}};
 
-use super::model::{ROOT_ADDR, State};
+use crate::model::{ROOT_ADDR, state::State};
 
 pub fn list_mode(terminal: &mut Terminal<CrosstermBackend<Stdout>>, state: &mut State) -> Result<(), Box<dyn Error>> {
     loop {

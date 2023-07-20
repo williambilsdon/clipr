@@ -2,6 +2,7 @@ use std::{io::stdout, error::Error};
 use ratatui::{backend::CrosstermBackend, Terminal};
 
 mod ui;
+mod model;
 
 fn main() -> Result<(), Box<dyn Error>>{
 

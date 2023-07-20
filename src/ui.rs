@@ -1,11 +1,11 @@
 mod create;
 mod list;
-mod model;
 
 use std::{io::{Stdout, self}, error::Error};
 use crossterm::{event::{Event, read, KeyCode, EnableMouseCapture, DisableMouseCapture}, terminal::{enable_raw_mode, EnterAlternateScreen, disable_raw_mode, LeaveAlternateScreen}, execute};
 use ratatui::{backend::CrosstermBackend, Terminal, widgets::Paragraph};
-use model::{Mode, State};
+
+use crate::model::state::{State, Mode};
 
 pub fn run(terminal: &mut Terminal<CrosstermBackend<Stdout>>) -> Result<(), Box<dyn Error>> {
     setup_terminal()?;
