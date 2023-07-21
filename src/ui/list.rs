@@ -9,14 +9,12 @@ pub fn list_mode(terminal: &mut Terminal<CrosstermBackend<Stdout>>, state: &mut 
         let dir = fs::read_dir(ROOT_ADDR)?;
         state.items = dir.filter_map(|file| 
             file.ok().and_then(|f| 
-                f.file_name().to_str().map(|file_name| 
-                    String::from(file_name)
-                )
+                f.file_name().to_str().map(String::from)
             )
         ).collect();
       
         let files: Vec<ListItem> = state.items.iter().map(|item| 
-            ListItem::new(Line::from(Span::raw(format!("{}", item))))
+            ListItem::new(Line::from(Span::raw(item.to_string())))
         ).collect();
         
         terminal.draw(|frame| {

@@ -5,7 +5,6 @@ mod ui;
 mod model;
 
 fn main() -> Result<(), Box<dyn Error>>{
-
     let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
     ui::run(&mut terminal)?;
     Ok(())
