@@ -1,32 +1,56 @@
 mod create;
 mod list;
 
-use std::{io::{Stdout, self}, error::Error};
-use crossterm::{event::{Event, read, KeyCode, EnableMouseCapture, DisableMouseCapture}, terminal::{enable_raw_mode, EnterAlternateScreen, disable_raw_mode, LeaveAlternateScreen}, execute};
-use ratatui::{backend::CrosstermBackend, Terminal, widgets::{Paragraph, Block, Borders}};
+use crossterm::{
+    event::{read, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEvent},
+    execute,
+    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+};
+use ratatui::{
+    backend::CrosstermBackend,
+    widgets::{Block, Borders, Paragraph},
+    Terminal,
+};
+use std::{
+    error::Error,
+    io::{self, Stdout},
+};
 
-use crate::model::state::{State, Mode};
+use crate::model::app::{App, Mode};
+
+trait Draw {
+    fn draw(
+        self: &mut Self,
+        terminal: &mut Terminal<CrosstermBackend<Stdout>>,
+    ) -> Result<(), Box<dyn Error>>;
+}
+
+trait Input {
+    fn input(self: &mut Self, event: KeyEvent) -> Result<(), Box<dyn Error>>;
+}
 
 pub fn run(terminal: &mut Terminal<CrosstermBackend<Stdout>>) -> Result<(), Box<dyn Error>> {
     setup_terminal()?;
 
-    let mut state = State::new();
+    let mut state = App::new();
+    let mut list_mode = list::List::new();
 
     loop {
         terminal.draw(|frame| {
-            let greeting = Paragraph::new("Please select a mode: Create (c), List (l)").block(Block::default().title("Menu").borders(Borders::ALL));
+            let greeting = Paragraph::new("Please select a mode: Create (c), List (l)")
+                .block(Block::default().title("Menu").borders(Borders::ALL));
             frame.render_widget(greeting, frame.size());
         })?;
         if let Event::Key(event) = read()? {
             match event.code {
                 KeyCode::Char('c') => {
-                    state.mode = Mode::Create; 
-                },
+                    state.mode = Mode::Create;
+                }
                 KeyCode::Char('l') => {
                     state.mode = Mode::List;
                 }
                 KeyCode::Esc => break,
-                _ => {},
+                _ => {}
             }
         }
 
@@ -34,12 +58,11 @@ pub fn run(terminal: &mut Terminal<CrosstermBackend<Stdout>>) -> Result<(), Box<
             Mode::Menu => {
                 //TODO:
                 {}
-            },
+            }
             Mode::Create => create::create_mode(terminal)?,
-            Mode::List => list::list_mode(terminal, &mut state)?,
+            Mode::List => list_mode.draw(terminal)?,
         }
-    
-    };
+    }
 
     restore_terminal(terminal)?;
 
@@ -56,9 +79,10 @@ fn restore_terminal(
     terminal: &mut Terminal<CrosstermBackend<Stdout>>,
 ) -> Result<(), Box<dyn Error>> {
     disable_raw_mode()?;
-    execute!(terminal.backend_mut(), LeaveAlternateScreen, DisableMouseCapture)?;
+    execute!(
+        terminal.backend_mut(),
+        LeaveAlternateScreen,
+        DisableMouseCapture
+    )?;
     Ok(terminal.show_cursor()?)
 }
-
-
-

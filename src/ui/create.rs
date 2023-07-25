@@ -1,26 +1,62 @@
-use std::{io::Stdout, error::Error};
 use crossterm::event::{read, Event, KeyCode, KeyEvent};
-use ratatui::{Terminal, backend::CrosstermBackend, widgets::{Paragraph, Block, Borders}};
+use ratatui::{
+    backend::CrosstermBackend,
+    widgets::{Block, Borders, Paragraph},
+    Terminal,
+};
+use std::{error::Error, io::Stdout};
 
 use crate::model::file::File;
 
-pub fn create_mode(terminal: &mut Terminal<CrosstermBackend<Stdout>>) -> Result<(), Box<dyn Error>> {
+use super::Draw;
+
+struct Create {
+    file: File,
+}
+
+impl Create {
+    pub fn new() -> Self {
+        Create { file: File::new() }
+    }
+}
+
+impl Draw for Create {
+    fn draw(
+        self: &mut Self,
+        terminal: &mut Terminal<CrosstermBackend<Stdout>>,
+    ) -> Result<(), Box<dyn Error>> {
+        let name_file_text = format!("Name the new file: {}", self.file.name);
+
+        terminal.draw(|frame| {
+            let name_file = Paragraph::new(name_file_text)
+                .block(Block::default().title("Create").borders(Borders::ALL));
+            frame.render_widget(name_file, frame.size());
+        })?;
+
+        Ok(())
+    }
+}
+
+pub fn create_mode(
+    terminal: &mut Terminal<CrosstermBackend<Stdout>>,
+) -> Result<(), Box<dyn Error>> {
     let mut file = File::new();
 
     loop {
         let name_file_text = format!("Name the new file: {}", &file.name);
 
         terminal.draw(|frame| {
-            let name_file = Paragraph::new(name_file_text).block(Block::default().title("Create").borders(Borders::ALL));
+            let name_file = Paragraph::new(name_file_text)
+                .block(Block::default().title("Create").borders(Borders::ALL));
             frame.render_widget(name_file, frame.size());
         })?;
-    
+
         if let Event::Key(event) = read()? {
             match event.code {
                 KeyCode::Char(c) => file.name.push(c),
                 KeyCode::Backspace => {
                     file.name.pop();
-                },
+                }
                 KeyCode::Enter => break,
                 _ => {}
             }
@@ -29,28 +65,40 @@ pub fn create_mode(terminal: &mut Terminal<CrosstermBackend<Stdout>>) -> Result<
 
     loop {
         terminal.draw(|frame| {
-            let contents = Paragraph::new(file.content.to_string()).block(Block::default().title("Create").borders(Borders::ALL));
+            let contents = Paragraph::new(file.content.to_string())
+                .block(Block::default().title("Create").borders(Borders::ALL));
             frame.render_widget(contents, frame.size());
         })?;
-    
+
         if let Event::Key(event) = read()? {
             match event {
-                KeyEvent{code: KeyCode::Char(c), ..} => {
+                KeyEvent {
+                    code: KeyCode::Char(c),
+                    ..
+                } => {
                     file.content.push(c);
-                },
-                KeyEvent{code: KeyCode::Enter, ..} => {
+                }
+                KeyEvent {
+                    code: KeyCode::Enter,
+                    ..
+                } => {
                     file.content.push('\n');
-                },
-                KeyEvent{code: KeyCode::Backspace, ..} => {
+                }
+                KeyEvent {
+                    code: KeyCode::Backspace,
+                    ..
+                } => {
                     file.content.pop();
-                },
-                KeyEvent{code: KeyCode::Esc, .. } => {
+                }
+                KeyEvent {
+                    code: KeyCode::Esc, ..
+                } => {
                     file.write()?;
-                    break
-                },
+                    break;
+                }
                 _ => {}
             }
-        } 
+        }
     }
 
     Ok(())
