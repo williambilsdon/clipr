@@ -8,9 +8,7 @@ use ratatui::{
 };
 use std::{error::Error, fs, io::Stdout};
 
-use crate::model::ROOT_ADDR;
-
-use super::{Draw, Input};
+use super::{Draw, Input, Mode, ROOT_ADDR};
 
 pub struct List {
     items: Vec<String>,
@@ -67,7 +65,7 @@ impl Draw for List {
 }
 
 impl Input for List {
-    fn input(&mut self, event: KeyEvent) -> Result<(), Box<dyn Error>> {
+    fn input(&mut self, event: KeyEvent, mode: &mut Mode) -> Result<(), Box<dyn Error>> {
         match event.code {
             KeyCode::Esc => {}
             KeyCode::Up => {

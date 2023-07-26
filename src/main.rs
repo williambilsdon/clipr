@@ -1,15 +1,11 @@
-use std::{io::stdout, error::Error};
 use ratatui::{backend::CrosstermBackend, Terminal};
+use std::{error::Error, io::stdout};
 
 mod ui;
-mod model;
 
-fn main() -> Result<(), Box<dyn Error>>{
+fn main() -> Result<(), Box<dyn Error>> {
     let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
-    ui::run(&mut terminal)?;
+    let mut app = ui::App::new(&mut terminal);
+    app.run()?;
     Ok(())
 }
-
-
-
-
