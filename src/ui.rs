@@ -20,13 +20,13 @@ use crate::model::app::{App, Mode};
 
 trait Draw {
     fn draw(
-        self: &mut Self,
+        &mut self,
         terminal: &mut Terminal<CrosstermBackend<Stdout>>,
     ) -> Result<(), Box<dyn Error>>;
 }
 
 trait Input {
-    fn input(self: &mut Self, event: KeyEvent) -> Result<(), Box<dyn Error>>;
+    fn input(&mut self, event: KeyEvent) -> Result<(), Box<dyn Error>>;
 }
 
 pub fn run(terminal: &mut Terminal<CrosstermBackend<Stdout>>) -> Result<(), Box<dyn Error>> {
@@ -41,6 +41,16 @@ pub fn run(terminal: &mut Terminal<CrosstermBackend<Stdout>>) -> Result<(), Box<
                 .block(Block::default().title("Menu").borders(Borders::ALL));
             frame.render_widget(greeting, frame.size());
         })?;
+
+        match state.mode {
+            Mode::Menu => {
+                //TODO:
+                {}
+            }
+            Mode::Create => create::create_mode(terminal)?,
+            Mode::List => list_mode.draw(terminal)?,
+        }
+
         if let Event::Key(event) = read()? {
             match event.code {
                 KeyCode::Char('c') => {
@@ -52,15 +62,6 @@ pub fn run(terminal: &mut Terminal<CrosstermBackend<Stdout>>) -> Result<(), Box<
                 KeyCode::Esc => break,
                 _ => {}
             }
-        }
-
-        match state.mode {
-            Mode::Menu => {
-                //TODO:
-                {}
-            }
-            Mode::Create => create::create_mode(terminal)?,
-            Mode::List => list_mode.draw(terminal)?,
         }
     }
 

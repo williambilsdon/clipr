@@ -69,7 +69,7 @@ impl Draw for List {
 impl Input for List {
     fn input(&mut self, event: KeyEvent) -> Result<(), Box<dyn Error>> {
         match event.code {
-            KeyCode::Esc => Ok(()),
+            KeyCode::Esc => {}
             KeyCode::Up => {
                 if let Some(selected) = self.state.selected() {
                     if selected > 0 {
@@ -78,7 +78,6 @@ impl Input for List {
                         self.state.select(Some(self.items.len().saturating_sub(1)));
                     }
                 }
-                Ok(())
             }
             KeyCode::Down => {
                 if let Some(selected) = self.state.selected() {
@@ -88,9 +87,10 @@ impl Input for List {
                         self.state.select(Some(selected + 1));
                     }
                 }
-                Ok(())
             }
-            _ => Ok(()),
+            _ => {}
         }
+
+        Ok(())
     }
 }
