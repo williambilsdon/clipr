@@ -35,7 +35,7 @@ impl<'a> App<'a> {
     pub fn new(terminal: &'a mut Terminal<CrosstermBackend<Stdout>>) -> Self {
         App {
             mode: Mode::Menu,
-            terminal: terminal,
+            terminal,
         }
     }
 
@@ -62,8 +62,8 @@ impl<'a> App<'a> {
             if let Event::Key(event) = read()? {
                 match self.mode {
                     Mode::Menu => self.input(event)?,
-                    Mode::Create => create_mode.input(event, &mut self.mode)?,
-                    Mode::List => list_mode.input(event, &mut self.mode)?,
+                    Mode::Create => create_mode.input(event, self)?,
+                    Mode::List => list_mode.input(event, self)?,
                     _ => {}
                 }
             }
@@ -114,5 +114,5 @@ trait Draw {
 }
 
 trait Input {
-    fn input(&mut self, event: KeyEvent, mode: &mut Mode) -> Result<(), Box<dyn Error>>;
+    fn input(&mut self, event: KeyEvent, app: &mut App) -> Result<(), Box<dyn Error>>;
 }

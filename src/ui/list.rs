@@ -8,7 +8,7 @@ use ratatui::{
 };
 use std::{error::Error, fs, io::Stdout};
 
-use super::{Draw, Input, Mode, ROOT_ADDR};
+use super::{App, Draw, Input, Mode, ROOT_ADDR};
 
 pub struct List {
     items: Vec<String>,
@@ -65,9 +65,9 @@ impl Draw for List {
 }
 
 impl Input for List {
-    fn input(&mut self, event: KeyEvent, mode: &mut Mode) -> Result<(), Box<dyn Error>> {
+    fn input(&mut self, event: KeyEvent, app: &mut App) -> Result<(), Box<dyn Error>> {
         match event.code {
-            KeyCode::Esc => {}
+            KeyCode::Esc => app.mode = Mode::Menu,
             KeyCode::Up => {
                 if let Some(selected) = self.state.selected() {
                     if selected > 0 {
