@@ -75,14 +75,14 @@ impl Create {
                 code: KeyCode::Enter,
                 ..
             } => {
-                self.save_popup = !self.save_popup;
                 self.file.write()?;
+                self.save_popup = !self.save_popup;
             }
             KeyEvent {
                 code: KeyCode::Backspace,
                 ..
             } => {
-                self.file.content.pop();
+                self.file.name.pop();
             }
             KeyEvent {
                 code: KeyCode::Esc, ..
@@ -106,6 +106,13 @@ impl Create {
             frame.render_widget(block, area);
         };
     }
+
+    fn saved_text(&self) -> String {
+        match self.save_popup {
+            true => String::from("Saved!"),
+            false => String::from("File not saved!"),
+        }
+    }
 }
 
 impl Draw for Create {
@@ -114,8 +121,9 @@ impl Draw for Create {
         terminal: &mut Terminal<CrosstermBackend<Stdout>>,
     ) -> Result<(), Box<dyn Error>> {
         terminal.draw(|frame| {
+            let title = format!("Create | {}", self.saved_text());
             let contents = Paragraph::new(self.file.content.to_string())
-                .block(Block::default().title("Create").borders(Borders::ALL));
+                .block(Block::default().title(title).borders(Borders::ALL));
             frame.render_widget(contents, frame.size());
             self.show_save_popup(frame);
         })?;
@@ -126,10 +134,9 @@ impl Draw for Create {
 
 impl Input for Create {
     fn input(&mut self, event: KeyEvent, app: &mut App) -> Result<(), Box<dyn Error>> {
-        if self.save_popup {
-            self.save_input(event)?
-        } else {
-            self.content_input(event, app)?
+        match self.save_popup {
+            true => self.save_input(event)?,
+            false => self.content_input(event, app)?,
         }
 
         Ok(())
